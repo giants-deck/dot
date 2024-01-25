@@ -16,11 +16,19 @@ class CommentReply extends Model
         'author',
         'email',
         'body',
-        'photo'
+        'photo',
+        'user_id'
     ];
 
     public function comment() : BelongsTo
     {
         return $this->belongsTo('App\Models\Comment');
     }
+
+    public function user() : BelongsTo
+    {
+        return $this->belongsTo('App\Models\User', 'user_id');
+    }
+
+
 }

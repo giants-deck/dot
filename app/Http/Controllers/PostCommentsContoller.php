@@ -15,6 +15,15 @@ class PostCommentsContoller extends Controller
     public function index()
     {
 
+//        $comments = collect(Comment::all())->map(function (object $comments){
+//            return $comments;
+//        })->reject(function ($comments){
+//            if (!$comments->replies()->first()){
+//                return $comments;
+//            }
+//        });
+//
+//        return $comments;
 
         $posts = collect(Post::all())->map(function (object $posts){
             return $posts;
@@ -46,7 +55,7 @@ class PostCommentsContoller extends Controller
           'author' => $user->name,
           'email' => $user->email,
           'photo' => $user->photo->path,
-          'body' => $request->body,
+          'body' => $request->body
         ];
 
         Comment::create($insertion);

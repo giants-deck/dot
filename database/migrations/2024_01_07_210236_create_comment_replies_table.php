@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('comment_id')->index();
             $table->tinyInteger('is_active')->default(0);
+            $table->unsignedBigInteger('parent_id')->nullable();
+            $table->unsignedBigInteger('user_id')->index();
             $table->string('author');
             $table->text('photo');
             $table->string('email');

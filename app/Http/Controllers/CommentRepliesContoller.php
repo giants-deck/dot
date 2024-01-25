@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comment;
+use App\Models\CommentReply;
+use App\Models\Post;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CommentRepliesContoller extends Controller
 {
@@ -11,7 +15,9 @@ class CommentRepliesContoller extends Controller
      */
     public function index()
     {
-        //
+        $replies = Comment::all();
+
+        return view('admin.comments.replies.index', compact('replies'));
     }
 
     /**
@@ -27,7 +33,18 @@ class CommentRepliesContoller extends Controller
      */
     public function store(Request $request)
     {
-        return $request->all();
+        $insertion = [
+          'comment_id' => $request->comment_id,
+          'author' => Auth::user()->name,
+          'email' => Auth::user()->email,
+          'photo' => Auth::user()->photo->path,
+          'body' => $request->reply,
+          'user_id' => Auth::user()->id
+        ];
+
+        CommentReply::create($insertion);
+        toast('Your Reply Submitted', 'success')->position('bottom-end');
+        return redirect()->back();
     }
 
     /**
@@ -35,7 +52,8 @@ class CommentRepliesContoller extends Controller
      */
     public function show(string $id)
     {
-        //
+        $replies = CommentReply::whereCommentId($id)->get();
+        return view('admin.comments.replies.show', compact('replies'));
     }
 
     /**
@@ -51,7 +69,22 @@ class CommentRepliesContoller extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        if (Auth::user()->isAdmin()){
+            CommentReply::whereId($id)->update(['is_active' => $request->is_active]);
+            $reply = CommentReply::findOrFail($id);
+            $is_active = $reply->is_active;
+            if ($is_active == 0){
+                $replies = CommentReply::whereCommentId($id)->get();
+                toast('Disapproved', 'warning')->position('bottom-end');
+                return redirect()->route('replies.show', $reply->comment_id);
+            }else{
+                $replies = CommentReply::whereCommentId($id)->get();
+                toast('Approved', 'success')->position('bottom-end');
+                return redirect()->route('replies.show', $reply->comment_id);
+            }
+        }
+        toast('Not Permitted', 'error')->position('bottom-end');
+        return redirect()->back();
     }
 
     /**
@@ -59,6 +92,14 @@ class CommentRepliesContoller extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $reply = CommentReply::findOrFail($id);
+        if (Auth::user()->isAdmin()){
+            $reply->delete();
+            toast('Reply Deleted', 'success')->position('bottom-end');
+            return redirect()->route('replies.show', $reply->comment->id);
+        }else{
+            toast('Un-Authorized Action', 'error')->position('bottom-end');
+            return redirect()->route('replies.show', $reply->comment->id);
+        }
     }
 }
